@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Item</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fefefe;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem 0;
+        }
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .expense-fields, .subscription-fields {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2 class="text-center mb-4">Adicionar Novo Item</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">{{ form.item_type.label }}</label>
+                    {{ form.item_type }}
+                </div>
+                
+                <div class="expense-fields">
+                    <h4>Detalhes da Despesa</h4>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.title.label }}</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.category.label }}</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.date.label }}</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+                
+                <div class="subscription-fields">
+                    <h4>Detalhes da Inscrição</h4>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.billing_day.label }}</label>
+                        {{ form.billing_day }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.active }}
+                        <label class="form-check-label">{{ form.active.label }}</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">Salvar</button>
+            </form>
+            <a href="{% url 'home' %}" class="btn btn-secondary w-100 mt-3">Voltar</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('input[name="item_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelector('.expense-fields').style.display = 'none';
+                document.querySelector('.subscription-fields').style.display = 'none';
+                if (this.value === 'expense') {
+                    document.querySelector('.expense-fields').style.display = 'block';
+                } else if (this.value === 'subscription') {
+                    document.querySelector('.subscription-fields').style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
