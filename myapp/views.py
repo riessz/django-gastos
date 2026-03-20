@@ -45,3 +45,21 @@ def add_item(request):
     
     return render(request, 'myapp/add_item.html', {'form': form})
 
+def expenses_list(request):
+    expenses = Expense.objects.order_by('-date')
+    total = sum(e.amount for e in expenses)
+    context = {
+        'expenses': expenses,
+        'total': total,
+    }
+    return render(request, 'myapp/expenses.html', context)
+
+def subscriptions_list(request):
+    subscriptions = Subscription.objects.all()
+    total = sum(s.amount for s in subscriptions if s.active)
+    context = {
+        'subscriptions': subscriptions,
+        'total': total,
+    }
+    return render(request, 'myapp/subscriptions.html', context)
+
