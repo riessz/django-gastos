@@ -1,80 +1,149 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Gastos</title>
-    {% load static %}
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
 </head>
-<body>
-    <div class="header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col text-center">
-                    <div class="greeting">Olá, Usuário!</div>
-                    <div class="date">{{ current_date|date:"l, d \d\e F \d\e Y" }}</div>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white pt-10 pb-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-72 h-72 bg-emerald-500 rounded-full opacity-[0.06] blur-3xl"></div>
+            <div class="absolute bottom-0 -left-10 w-56 h-40 bg-sky-500 rounded-full opacity-[0.05] blur-3xl"></div>
+        </div>
+        <div class="max-w-xl mx-auto relative">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">
+                        {{ current_date|date:"l, d \d\e F \d\e Y" }}
+                    </p>
+                    <h1 class="text-2xl font-bold mt-1.5 tracking-tight">Olá, Usuário! 👋</h1>
                 </div>
-                <div class="col-auto">
-                    <a href="{% url 'expenses_list' %}" class="btn btn-outline-light me-2">Ver Gastos</a>
-                    <a href="{% url 'subscriptions_list' %}" class="btn btn-outline-light">Ver Assinaturas</a>
+                <div class="flex gap-2 mt-1">
+                    <a href="{% url 'expenses_list' %}"
+                       class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 text-xs font-medium">
+                        <i class="fas fa-list text-[10px]"></i>
+                        Gastos
+                    </a>
+                    <a href="{% url 'subscriptions_list' %}"
+                       class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 text-xs font-medium">
+                        <i class="fas fa-rotate text-[10px]"></i>
+                        Assinaturas
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="summary-card text-center">
-                    <div class="card-icon">💼</div>
-                    <h3>Gasto do Mês</h3>
-                    <div class="card-value">R$ {{ total_expense|floatformat:2 }}</div>
+    <!-- Main content -->
+    <div class="max-w-xl mx-auto px-4 mt-5 pb-28">
+
+        <!-- Summary cards -->
+        <div class="grid grid-cols-2 gap-3 mb-5">
+            <div class="bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/60 border border-slate-100">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Gasto do Mês</p>
+                        <p class="text-xl font-bold text-slate-800 tracking-tight">R$ {{ total_expense|floatformat:2 }}</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-arrow-trend-up text-rose-400 text-sm"></i>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="summary-card">
-                    <div class="card-icon">📋</div>
-                    <h3>Contas Fixas (Inscrições)</h3>
-                    <div class="card-value">R$ {{ total_subscription|floatformat:2 }}</div>
-                    <ul class="fixed-accounts list-unstyled mt-2">
-                        {% for sub in subscriptions %}
-                            <li><i class="fas fa-dot-circle"></i> {{ sub.name }} - R$ {{ sub.amount|floatformat:2 }}</li>
-                        {% empty %}
-                            <li>Nenhuma inscrição ativa.</li>
-                        {% endfor %}
-                    </ul>
+            <div class="bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/60 border border-slate-100">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Contas Fixas</p>
+                        <p class="text-xl font-bold text-slate-800 tracking-tight">R$ {{ total_subscription|floatformat:2 }}</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-rotate text-emerald-500 text-sm"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="expense-list">
-            <h3>Últimas Despesas</h3>
-            {% if expenses %}
-                {% for expense in expenses %}
-                <div class="expense-item">
-                    <div class="expense-icon" style="background: #ffeaa7;"><i class="fas fa-utensils" style="color: #d63031;"></i></div>
-                    <div class="expense-details">
-                        <div class="expense-name">{{ expense.title }}</div>
-                        <div class="expense-date">{{ expense.date|date:"d/m/Y" }} • {{ expense.category.name }}</div>
+        <!-- Active subscriptions -->
+        {% if subscriptions %}
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-5">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Assinaturas Ativas</h3>
+                <a href="{% url 'subscriptions_list' %}" class="text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors">
+                    Ver todas <i class="fas fa-arrow-right text-[9px] ml-0.5"></i>
+                </a>
+            </div>
+            <div class="space-y-0.5">
+                {% for sub in subscriptions %}
+                <div class="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></div>
+                        <span class="text-sm font-medium text-slate-700">{{ sub.name }}</span>
                     </div>
-                    <div class="expense-value">R$ {{ expense.amount|floatformat:2 }}</div>
+                    <span class="text-sm font-semibold text-emerald-600">R$ {{ sub.amount|floatformat:2 }}</span>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent expenses -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-slate-700">Últimas Despesas</h3>
+                <a href="{% url 'expenses_list' %}" class="text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors">
+                    Ver todas <i class="fas fa-arrow-right text-[9px] ml-0.5"></i>
+                </a>
+            </div>
+
+            {% if expenses %}
+            <div class="space-y-2">
+                {% for expense in expenses %}
+                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-center gap-3 group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                        <i class="fas fa-receipt text-amber-500 text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-800 truncate">{{ expense.title }}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-xs text-slate-400">{{ expense.date|date:"d/m/Y" }}</span>
+                            <span class="text-slate-200 text-xs">•</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-medium">{{ expense.category.name }}</span>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-rose-500 flex-shrink-0 tabular-nums">- R$ {{ expense.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
-                <p>Não há despesas para mostrar.</p>
+            <div class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-receipt text-slate-300 text-xl"></i>
+                </div>
+                <p class="text-slate-500 font-medium text-sm">Nenhuma despesa ainda</p>
+                <p class="text-slate-400 text-xs mt-1">Use o botão + para adicionar!</p>
+            </div>
             {% endif %}
         </div>
+
     </div>
 
-    <a href="{% url 'add_item' %}" class="add-btn" title="Adicionar Novo Gasto">
-        <i class="fas fa-plus"></i>
+    <!-- FAB -->
+    <a href="{% url 'add_item' %}"
+       class="fixed bottom-7 right-6 w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/40 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-emerald-500/50 active:scale-95 transition-all duration-200 z-50">
+        <i class="fas fa-plus text-xl"></i>
     </a>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

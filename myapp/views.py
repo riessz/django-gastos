@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from datetime import datetime
-from .forms import AddItemForm
+from .forms import AddItemForm, ExpenseForm, SubscriptionForm
 from .models import Expense, Subscription
 
 def home(request):
@@ -46,20 +46,38 @@ def add_item(request):
     return render(request, 'myapp/add_item.html', {'form': form})
 
 def expenses_list(request):
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('expenses_list')
+    else:
+        form = ExpenseForm()
+
     expenses = Expense.objects.order_by('-date')
     total = sum(e.amount for e in expenses)
-    context = {
+    return render(request, 'myapp/expenses.html', {
         'expenses': expenses,
         'total': total,
-    }
-    return render(request, 'myapp/expenses.html', context)
+        'form': form,
+        'show_modal': request.method == 'POST',
+    })
 
 def subscriptions_list(request):
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('subscriptions_list')
+    else:
+        form = SubscriptionForm()
+
     subscriptions = Subscription.objects.all()
     total = sum(s.amount for s in subscriptions if s.active)
-    context = {
+    return render(request, 'myapp/subscriptions.html', {
         'subscriptions': subscriptions,
         'total': total,
-    }
-    return render(request, 'myapp/subscriptions.html', context)
+        'form': form,
+        'show_modal': request.method == 'POST',
+    })
 

@@ -4,52 +4,226 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Gastos</title>
-    {% load static %}
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'myapp/css/list.css' %}">
+    <style>
+        #modal-panel {
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        #modal-panel.open {
+            transform: translateY(0);
+        }
+        #modal-backdrop {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #modal-backdrop.open {
+            opacity: 1;
+        }
+
+        .form-input {
+            @apply w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent focus:bg-white;
+        }
+        select.form-input {
+            @apply appearance-none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 2.5rem;
+        }
+        textarea.form-input {
+            @apply resize-none;
+            min-height: 72px;
+        }
+    </style>
 </head>
-<body>
-    <div class="header">
-        <div class="container text-center">
-            <h1 class="mb-0">Lista de Gastos</h1>
-            <p class="mb-0">Total: R$ {{ total|floatformat:2 }}</p>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-rose-950 text-white pt-10 pb-16 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-64 h-64 bg-rose-500 rounded-full opacity-[0.07] blur-3xl"></div>
+        </div>
+        <div class="max-w-xl mx-auto relative">
+            <div class="flex items-center gap-3 mb-5">
+                <a href="{% url 'home' %}"
+                   class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-all flex-shrink-0">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </a>
+                <h1 class="text-lg font-bold tracking-tight">Lista de Gastos</h1>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-4 border border-white/10">
+                <p class="text-slate-400 text-[11px] font-medium uppercase tracking-widest">Total de Gastos</p>
+                <p class="text-3xl font-bold mt-1 tracking-tight tabular-nums">R$ {{ total|floatformat:2 }}</p>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="list-container">
-            {% if expenses %}
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Categoria</th>
-                            <th>Data</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for expense in expenses %}
-                        <tr>
-                            <td>{{ expense.title }}</td>
-                            <td>{{ expense.category.name }}</td>
-                            <td>{{ expense.date|date:"d/m/Y" }}</td>
-                            <td>R$ {{ expense.amount|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>Nenhum gasto registrado.</p>
-            {% endif %}
+    <!-- Content -->
+    <div class="max-w-xl mx-auto px-4 mt-5 pb-28">
+
+        {% if expenses %}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="grid grid-cols-12 gap-2 px-4 py-3 bg-slate-50 border-b border-slate-100">
+                <span class="col-span-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Título</span>
+                <span class="col-span-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Categoria</span>
+                <span class="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Data</span>
+                <span class="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Valor</span>
+            </div>
+            <div class="divide-y divide-slate-50">
+                {% for expense in expenses %}
+                <div class="grid grid-cols-12 gap-2 px-4 py-3.5 hover:bg-slate-50/70 transition-colors items-center">
+                    <p class="col-span-5 text-sm font-semibold text-slate-800 truncate pr-2">{{ expense.title }}</p>
+                    <div class="col-span-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-medium truncate max-w-full">
+                            {{ expense.category.name }}
+                        </span>
+                    </div>
+                    <p class="col-span-2 text-xs text-slate-400 tabular-nums">{{ expense.date|date:"d/m/Y" }}</p>
+                    <p class="col-span-2 text-sm font-bold text-rose-500 text-right tabular-nums">R$ {{ expense.amount|floatformat:2 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="grid grid-cols-12 gap-2 px-4 py-3.5 bg-slate-50 border-t border-slate-100 items-center">
+                <p class="col-span-10 text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</p>
+                <p class="col-span-2 text-sm font-bold text-slate-800 text-right tabular-nums">R$ {{ total|floatformat:2 }}</p>
+            </div>
         </div>
-        <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Voltar à Home</a>
+        {% else %}
+        <div class="bg-white rounded-2xl p-14 text-center shadow-sm border border-slate-100">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-receipt text-slate-300 text-2xl"></i>
+            </div>
+            <p class="text-slate-500 font-semibold">Nenhum gasto registrado</p>
+            <p class="text-slate-400 text-sm mt-1">Adicione seu primeiro gasto!</p>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'home' %}" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-sm mt-4 hover:text-emerald-700 transition-colors">
+            <i class="fas fa-arrow-left text-xs"></i>
+            Voltar à Home
+        </a>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FAB -->
+    <button id="open-modal"
+            class="fixed bottom-7 right-6 w-14 h-14 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-2xl shadow-lg shadow-rose-500/40 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-rose-500/50 active:scale-95 transition-all duration-200 z-40">
+        <i class="fas fa-plus text-xl"></i>
+    </button>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-50 hidden flex items-end justify-center">
+        <div id="modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div id="modal-panel" class="relative w-full max-w-xl bg-white rounded-t-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+
+            <!-- Handle -->
+            <div class="sticky top-0 bg-white pt-3 pb-2 px-5 z-10">
+                <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3"></div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center">
+                            <i class="fas fa-wallet text-rose-400 text-sm"></i>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800">Novo Gasto</h2>
+                    </div>
+                    <button id="close-modal" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                        <i class="fas fa-xmark text-slate-500 text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post" class="px-5 pb-8 pt-2">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                    {% for error in form.non_field_errors %}
+                    <p class="text-rose-600 text-sm font-medium">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.amount.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.category.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.date.label }}</label>
+                        {{ form.date }}
+                        {% if form.date.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.date.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.description.label }}</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="w-full mt-6 py-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white font-semibold rounded-2xl shadow-lg shadow-rose-500/30 hover:from-rose-600 hover:to-rose-700 hover:shadow-xl active:scale-95 transition-all duration-200 text-sm tracking-wide">
+                    <i class="fas fa-check mr-2"></i>
+                    Salvar Gasto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('modal');
+        const panel = document.getElementById('modal-panel');
+        const backdrop = document.getElementById('modal-backdrop');
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                panel.classList.add('open');
+                backdrop.classList.add('open');
+            });
+            document.body.style.overflow = 'hidden';
+
+            // Apply Tailwind styles to form inputs
+            modal.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], select, textarea').forEach(el => {
+                el.classList.add('form-input');
+            });
+        }
+
+        function closeModal() {
+            panel.classList.remove('open');
+            backdrop.classList.remove('open');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        document.getElementById('open-modal').addEventListener('click', openModal);
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        // Auto-open if form has errors (re-render after failed POST)
+        {% if show_modal %}openModal();{% endif %}
+    </script>
 </body>
 </html>
