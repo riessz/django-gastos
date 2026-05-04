@@ -1,44 +1,33 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Item</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
-        }
-    </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .expense-fields, .subscription-fields { display: none; }
+{% extends "myapp/base.html" %}
+{% load static %}
 
-        input[type="text"]:not([type="radio"]):not([type="checkbox"]),
-        input[type="number"],
-        input[type="date"],
-        select,
-        textarea {
-            @apply w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white;
-        }
-        textarea {
-            @apply resize-none;
-            min-height: 80px;
-        }
-        select {
-            @apply appearance-none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 12px center;
-            background-repeat: no-repeat;
-            background-size: 16px;
-            padding-right: 2.5rem;
-        }
-    </style>
-</head>
-<body class="bg-slate-50 min-h-screen font-sans">
+{% block title %}Adicionar Item{% endblock %}
 
+{% block extra_head %}
+<style>
+    input[type="text"]:not([type="radio"]):not([type="checkbox"]),
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        @apply w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white;
+    }
+    textarea {
+        @apply resize-none;
+        min-height: 80px;
+    }
+    select {
+        @apply appearance-none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 2.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
     <!-- Header -->
     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white pt-10 pb-6 px-4">
         <div class="max-w-lg mx-auto flex items-center gap-3">
@@ -162,7 +151,6 @@
                 Salvar Registro
             </button>
 
-            <!-- Non-field errors -->
             {% if form.non_field_errors %}
             <div class="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
                 {% for error in form.non_field_errors %}
@@ -172,37 +160,8 @@
             {% endif %}
         </form>
     </div>
+{% endblock %}
 
-    <script>
-        const expenseFields = document.querySelector('.expense-fields');
-        const subscriptionFields = document.querySelector('.subscription-fields');
-        const submitBtn = document.getElementById('submit-btn');
-
-        function showFields(type) {
-            expenseFields.style.display = type === 'expense' ? 'block' : 'none';
-            subscriptionFields.style.display = type === 'subscription' ? 'block' : 'none';
-            submitBtn.classList.remove('hidden');
-        }
-
-        document.querySelectorAll('input[name="item_type"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                showFields(this.value);
-            });
-        });
-
-        // Pre-select on page load (e.g. form re-render after error)
-        const checked = document.querySelector('input[name="item_type"]:checked');
-        if (checked) showFields(checked.value);
-
-        // Disable fields in hidden sections so they're not submitted
-        document.querySelector('form').addEventListener('submit', function () {
-            if (expenseFields.style.display === 'none') {
-                expenseFields.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
-            }
-            if (subscriptionFields.style.display === 'none') {
-                subscriptionFields.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
-            }
-        });
-    </script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'myapp/js/add_item.js' %}"></script>
+{% endblock %}

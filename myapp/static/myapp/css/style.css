@@ -1,3 +1,38 @@
+/* ── Fade-up animation (home) ─────────────────────────── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.12s; }
+.delay-3 { animation-delay: 0.20s; }
+.delay-4 { animation-delay: 0.28s; }
+
+/* ── Bottom sheet transitions ─────────────────────────── */
+.sheet-panel {
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sheet-panel.open { transform: translateY(0); }
+.sheet-backdrop { opacity: 0; transition: opacity 0.3s ease; }
+.sheet-backdrop.open { opacity: 1; }
+
+/* ── Row / card removal ───────────────────────────────── */
+.exp-row { transition: opacity 0.25s ease, transform 0.25s ease; }
+.exp-row.removing { opacity: 0; transform: scale(0.98); }
+.sub-card { transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, translate 0.2s ease; }
+.sub-card.removing { opacity: 0; transform: scale(0.95); }
+
+/* ── Subscription payment button ─────────────────────── */
+.payment-btn { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease; }
+.payment-btn:active { transform: scale(0.88); }
+.payment-btn.loading { opacity: 0.6; pointer-events: none; }
+
+/* ── Add-item type fields ─────────────────────────────── */
+.expense-fields, .subscription-fields { display: none; }
+
+/* ── Legacy styles (unused, kept for reference) ──────── */
 body {
     background-color: #f8fafc;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
