@@ -1,3 +1,4 @@
+
 from django.db import models
 
 class Category(models.Model):
@@ -24,5 +25,14 @@ class Subscription(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
+class SubscriptionPayment(models.Model):
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='payments')
+    month = models.IntegerField()
+    year = models.IntegerField()
+    paid = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ['subscription', 'month', 'year']
 

@@ -14,21 +14,30 @@
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        #modal-panel {
+        #modal-panel, #edit-panel {
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
         }
-        #modal-panel.open {
+        #modal-panel.open, #edit-panel.open {
             transform: translateY(0);
         }
-        #modal-backdrop {
+        #modal-backdrop, #edit-backdrop {
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        #modal-backdrop.open {
+        #modal-backdrop.open, #edit-backdrop.open {
             opacity: 1;
         }
-
+        .payment-btn {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+        }
+        .payment-btn:active {
+            transform: scale(0.88);
+        }
+        .payment-btn.loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
         .form-input {
             @apply w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white;
         }
@@ -39,6 +48,13 @@
             background-repeat: no-repeat;
             background-size: 16px;
             padding-right: 2.5rem;
+        }
+        .sub-card {
+            transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, translate 0.2s ease;
+        }
+        .sub-card.removing {
+            opacity: 0;
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -58,8 +74,13 @@
                 <h1 class="text-lg font-bold tracking-tight">Assinaturas</h1>
             </div>
             <div class="bg-white/10 rounded-2xl p-4 border border-white/10">
-                <p class="text-slate-400 text-[11px] font-medium uppercase tracking-widest">Total Ativo Mensal</p>
-                <p class="text-3xl font-bold mt-1 tracking-tight tabular-nums">R$ {{ total|floatformat:2 }}</p>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-slate-400 text-[11px] font-medium uppercase tracking-widest">Total Ativo Mensal</p>
+                        <p class="text-3xl font-bold mt-1 tracking-tight tabular-nums">R$ {{ total|floatformat:2 }}</p>
+                    </div>
+                    <span class="text-[11px] font-semibold text-emerald-300/70 uppercase tracking-widest mt-1">{{ current_month }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -68,9 +89,22 @@
     <div class="max-w-xl mx-auto px-4 mt-5 pb-28">
 
         {% if subscriptions %}
-        <div class="space-y-2.5">
+        <div id="subs-list" class="space-y-2.5">
             {% for sub in subscriptions %}
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div class="sub-card bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 relative group"
+                 data-sub-id="{{ sub.id }}"
+                 data-sub-name="{{ sub.name }}"
+                 data-sub-amount="{{ sub.amount }}"
+                 data-sub-billing-day="{{ sub.billing_day }}"
+                 data-sub-active="{{ sub.active|yesno:'true,false' }}">
+
+                <!-- Kebab menu -->
+                <button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-150 hover:bg-slate-50 z-20"
+                        onclick="openEditModal(this.closest('[data-sub-id]'))"
+                        title="Opções">
+                    <i class="fas fa-ellipsis-vertical text-slate-400 text-xs"></i>
+                </button>
+
                 <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 {% if sub.active %}bg-emerald-50{% else %}bg-slate-100{% endif %}">
                     <i class="fas fa-rotate {% if sub.active %}text-emerald-500{% else %}text-slate-400{% endif %}"></i>
                 </div>
@@ -94,14 +128,34 @@
                     </span>
                     {% endif %}
                 </div>
+                <!-- Payment toggle -->
+                <div class="flex-shrink-0 pl-1 border-l border-slate-100">
+                    <button
+                        class="payment-btn flex flex-col items-center gap-0.5"
+                        data-sub-id="{{ sub.id }}"
+                        data-paid="{% if sub.paid_this_month %}true{% else %}false{% endif %}"
+                        onclick="togglePayment(this)"
+                        title="Marcar pagamento do mês"
+                    >
+                        {% if sub.paid_this_month %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-500 text-white text-[11px] font-bold shadow-sm shadow-emerald-200">
+                            <i class="fas fa-check text-[10px]"></i> Paga
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 text-[11px] font-bold">
+                            <i class="fas fa-clock text-[10px]"></i> Pendente
+                        </span>
+                        {% endif %}
+                    </button>
+                </div>
             </div>
             {% endfor %}
         </div>
 
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mt-3 flex items-center justify-between">
+        <div id="subs-footer" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mt-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
-                <span class="text-sm font-medium text-slate-600">{{ subscriptions|length }} assinatura{{ subscriptions|length|pluralize:"s" }}</span>
+                <span id="subs-count" class="text-sm font-medium text-slate-600">{{ subscriptions|length }} assinatura{{ subscriptions|length|pluralize:"s" }}</span>
             </div>
             <span class="text-sm font-bold text-slate-800 tabular-nums">Total: R$ {{ total|floatformat:2 }}/mês</span>
         </div>
@@ -128,12 +182,10 @@
         <i class="fas fa-plus text-xl"></i>
     </button>
 
-    <!-- Modal -->
+    <!-- Add Modal -->
     <div id="modal" class="fixed inset-0 z-50 hidden flex items-end justify-center">
         <div id="modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
         <div id="modal-panel" class="relative w-full max-w-xl bg-white rounded-t-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
-
-            <!-- Handle -->
             <div class="sticky top-0 bg-white pt-3 pb-2 px-5 z-10">
                 <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3"></div>
                 <div class="flex items-center justify-between">
@@ -148,11 +200,8 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Form -->
             <form method="post" class="px-5 pb-8 pt-2">
                 {% csrf_token %}
-
                 {% if form.non_field_errors %}
                 <div class="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl">
                     {% for error in form.non_field_errors %}
@@ -160,7 +209,6 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{{ form.name.label }}</label>
@@ -182,7 +230,6 @@
                         <label class="text-sm font-medium text-slate-700 select-none">{{ form.active.label }}</label>
                     </div>
                 </div>
-
                 <button type="submit"
                         class="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-2xl shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-emerald-700 hover:shadow-xl active:scale-95 transition-all duration-200 text-sm tracking-wide">
                     <i class="fas fa-check mr-2"></i>
@@ -192,7 +239,83 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-end justify-center">
+        <div id="edit-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div id="edit-panel" class="relative w-full max-w-xl bg-white rounded-t-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="sticky top-0 bg-white pt-3 pb-2 px-5 z-10">
+                <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3"></div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                            <i class="fas fa-pen text-slate-500 text-sm"></i>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800">Editar Assinatura</h2>
+                    </div>
+                    <button onclick="closeEditModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                        <i class="fas fa-xmark text-slate-500 text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="px-5 pb-8 pt-2">
+                <input type="hidden" id="edit-sub-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nome</label>
+                        <input type="text" id="edit-name" class="form-input w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white" placeholder="Nome da assinatura">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Valor</label>
+                        <input type="number" id="edit-amount" class="form-input w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dia de cobrança</label>
+                        <input type="number" id="edit-billing-day" class="form-input w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-800 placeholder-slate-400 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white" min="1" max="31" placeholder="1 – 31">
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">
+                        <input type="checkbox" id="edit-active" class="w-4 h-4 accent-emerald-500">
+                        <label for="edit-active" class="text-sm font-medium text-slate-700 select-none">Ativa</label>
+                    </div>
+                </div>
+
+                <button onclick="submitEdit()"
+                        class="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-2xl shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-emerald-700 active:scale-95 transition-all duration-200 text-sm tracking-wide">
+                    <i class="fas fa-check mr-2"></i>
+                    Salvar Alterações
+                </button>
+
+                <!-- Delete trigger -->
+                <div id="delete-section" class="mt-3">
+                    <button onclick="showDeleteConfirm()"
+                            class="w-full py-3 rounded-2xl border border-rose-200 text-rose-500 font-semibold text-sm hover:bg-rose-50 transition-colors">
+                        <i class="fas fa-trash-can mr-2"></i>
+                        Excluir Assinatura
+                    </button>
+                </div>
+
+                <!-- Delete confirmation -->
+                <div id="delete-confirm" class="mt-3 hidden">
+                    <div class="bg-rose-50 rounded-2xl p-4 border border-rose-100">
+                        <p class="text-sm font-semibold text-rose-700 text-center mb-3">Tem certeza? Esta ação não pode ser desfeita.</p>
+                        <div class="flex gap-2">
+                            <button onclick="hideDeleteConfirm()"
+                                    class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors">
+                                Cancelar
+                            </button>
+                            <button onclick="submitDelete()"
+                                    class="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-semibold text-sm hover:bg-rose-600 active:scale-95 transition-all">
+                                <i class="fas fa-trash-can mr-1.5"></i>
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ── Add modal ──────────────────────────────────────────
         const modal = document.getElementById('modal');
         const panel = document.getElementById('modal-panel');
         const backdrop = document.getElementById('modal-backdrop');
@@ -204,7 +327,6 @@
                 backdrop.classList.add('open');
             });
             document.body.style.overflow = 'hidden';
-
             modal.querySelectorAll('input[type="text"], input[type="number"], select').forEach(el => {
                 el.classList.add('form-input');
             });
@@ -213,18 +335,158 @@
         function closeModal() {
             panel.classList.remove('open');
             backdrop.classList.remove('open');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = '';
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
         }
 
         document.getElementById('open-modal').addEventListener('click', openModal);
         document.getElementById('close-modal').addEventListener('click', closeModal);
         backdrop.addEventListener('click', closeModal);
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
         {% if show_modal %}openModal();{% endif %}
+
+        // ── Edit modal ─────────────────────────────────────────
+        const editModal = document.getElementById('edit-modal');
+        const editPanel = document.getElementById('edit-panel');
+        const editBackdrop = document.getElementById('edit-backdrop');
+
+        function openEditModal(card) {
+            document.getElementById('edit-sub-id').value       = card.dataset.subId;
+            document.getElementById('edit-name').value         = card.dataset.subName;
+            document.getElementById('edit-amount').value       = card.dataset.subAmount;
+            document.getElementById('edit-billing-day').value  = card.dataset.subBillingDay;
+            document.getElementById('edit-active').checked     = card.dataset.subActive === 'true';
+            hideDeleteConfirm();
+            editModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                editPanel.classList.add('open');
+                editBackdrop.classList.add('open');
+            });
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditModal() {
+            editPanel.classList.remove('open');
+            editBackdrop.classList.remove('open');
+            setTimeout(() => { editModal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+        }
+
+        editBackdrop.addEventListener('click', closeEditModal);
+
+        function showDeleteConfirm() {
+            document.getElementById('delete-section').classList.add('hidden');
+            document.getElementById('delete-confirm').classList.remove('hidden');
+        }
+
+        function hideDeleteConfirm() {
+            document.getElementById('delete-section').classList.remove('hidden');
+            document.getElementById('delete-confirm').classList.add('hidden');
+        }
+
+        async function submitEdit() {
+            const subId      = document.getElementById('edit-sub-id').value;
+            const name       = document.getElementById('edit-name').value.trim();
+            const amount     = document.getElementById('edit-amount').value.trim();
+            const billingDay = document.getElementById('edit-billing-day').value.trim();
+            const active     = document.getElementById('edit-active').checked;
+            if (!name || !amount || !billingDay) return;
+
+            const body = new FormData();
+            body.append('name', name);
+            body.append('amount', amount);
+            body.append('billing_day', billingDay);
+            if (active) body.append('active', 'on');
+
+            const resp = await fetch(`/subscriptions/${subId}/edit/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body,
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                closeEditModal();
+                window.location.reload();
+            }
+        }
+
+        async function submitDelete() {
+            const subId = document.getElementById('edit-sub-id').value;
+            const resp = await fetch(`/subscriptions/${subId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                closeEditModal();
+                const card = document.querySelector(`.sub-card[data-sub-id="${subId}"]`);
+                if (card) {
+                    card.classList.add('removing');
+                    setTimeout(() => {
+                        card.remove();
+                        updateCount();
+                    }, 260);
+                }
+            }
+        }
+
+        function updateCount() {
+            const remaining = document.querySelectorAll('.sub-card').length;
+            const el = document.getElementById('subs-count');
+            if (el) el.textContent = `${remaining} assinatura${remaining !== 1 ? 's' : ''}`;
+            if (remaining === 0) {
+                const footer = document.getElementById('subs-footer');
+                if (footer) footer.remove();
+            }
+        }
+
+        // ── Keyboard close ─────────────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeEditModal();
+            }
+        });
+
+        // ── Payment toggle ─────────────────────────────────────
+        function getCookie(name) {
+            let value = null;
+            document.cookie.split(';').forEach(c => {
+                const [k, v] = c.trim().split('=');
+                if (k === name) value = decodeURIComponent(v);
+            });
+            return value;
+        }
+
+        async function togglePayment(btn) {
+            if (btn.classList.contains('loading')) return;
+            const subId  = btn.dataset.subId;
+            const wasPaid = btn.dataset.paid === 'true';
+            btn.classList.add('loading');
+            renderPaymentBtn(btn, !wasPaid);
+            try {
+                const resp = await fetch(`/subscriptions/${subId}/toggle-payment/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                });
+                const data = await resp.json();
+                renderPaymentBtn(btn, data.paid);
+            } catch {
+                renderPaymentBtn(btn, wasPaid);
+            } finally {
+                btn.classList.remove('loading');
+            }
+        }
+
+        function renderPaymentBtn(btn, paid) {
+            btn.dataset.paid = paid ? 'true' : 'false';
+            const span = btn.querySelector('span');
+            if (paid) {
+                span.className = 'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-500 text-white text-[11px] font-bold shadow-sm shadow-emerald-200';
+                span.innerHTML = '<i class="fas fa-check text-[10px]"></i> Paga';
+            } else {
+                span.className = 'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 text-[11px] font-bold';
+                span.innerHTML = '<i class="fas fa-clock text-[10px]"></i> Pendente';
+            }
+        }
     </script>
 </body>
 </html>

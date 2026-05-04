@@ -13,6 +13,20 @@
         }
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up {
+            animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.12s; }
+        .delay-3 { animation-delay: 0.20s; }
+        .delay-4 { animation-delay: 0.28s; }
+    </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans">
 
@@ -22,7 +36,7 @@
             <div class="absolute -top-10 -right-10 w-72 h-72 bg-emerald-500 rounded-full opacity-[0.06] blur-3xl"></div>
             <div class="absolute bottom-0 -left-10 w-56 h-40 bg-sky-500 rounded-full opacity-[0.05] blur-3xl"></div>
         </div>
-        <div class="max-w-xl mx-auto relative">
+        <div class="max-w-4xl mx-auto relative">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">
@@ -33,18 +47,15 @@
                 <div class="flex gap-2 mt-1">
                     <a href="{% url 'expenses_list' %}"
                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 text-xs font-medium">
-                        <i class="fas fa-list text-[10px]"></i>
-                        Gastos
+                        <i class="fas fa-list text-[10px]"></i> Gastos
                     </a>
                     <a href="{% url 'subscriptions_list' %}"
                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 text-xs font-medium">
-                        <i class="fas fa-rotate text-[10px]"></i>
-                        Assinaturas
+                        <i class="fas fa-rotate text-[10px]"></i> Assinaturas
                     </a>
                     <a href="{% url 'categories_list' %}"
                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 text-xs font-medium">
-                        <i class="fas fa-tag text-[10px]"></i>
-                        Categorias
+                        <i class="fas fa-tag text-[10px]"></i> Categorias
                     </a>
                 </div>
             </div>
@@ -52,15 +63,39 @@
     </div>
 
     <!-- Main content -->
-    <div class="max-w-xl mx-auto px-4 mt-5 pb-28">
+    <div class="max-w-4xl mx-auto px-4 mt-5 pb-28 space-y-3">
 
-        <!-- Summary cards -->
-        <div class="grid grid-cols-2 gap-3 mb-5">
+        <!-- ① Month navigation -->
+        <div class="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100 fade-up delay-1">
+            <a href="?month={{ prev_month }}&year={{ prev_year }}"
+               class="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-left text-slate-500 text-xs"></i>
+            </a>
+            <div class="text-center">
+                <p class="text-sm font-bold text-slate-800 capitalize">{{ selected_month_label }}</p>
+                {% if is_current_month %}
+                <span class="text-[10px] text-emerald-500 font-semibold">mês atual</span>
+                {% endif %}
+            </div>
+            {% if is_current_month %}
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center opacity-25 cursor-not-allowed">
+                <i class="fas fa-chevron-right text-slate-500 text-xs"></i>
+            </div>
+            {% else %}
+            <a href="?month={{ next_month }}&year={{ next_year }}"
+               class="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-right text-slate-500 text-xs"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- ② Summary cards -->
+        <div class="grid grid-cols-2 gap-3 fade-up delay-1">
             <div class="bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/60 border border-slate-100">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Gasto do Mês</p>
-                        <p class="text-xl font-bold text-slate-800 tracking-tight">R$ {{ total_expense|floatformat:2 }}</p>
+                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Gastos do Mês</p>
+                        <p class="text-xl font-bold text-slate-800 tracking-tight tabular-nums">R$ {{ total_expense|floatformat:2 }}</p>
                     </div>
                     <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-arrow-trend-up text-rose-400 text-sm"></i>
@@ -70,8 +105,8 @@
             <div class="bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/60 border border-slate-100">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Contas Fixas</p>
-                        <p class="text-xl font-bold text-slate-800 tracking-tight">R$ {{ total_subscription|floatformat:2 }}</p>
+                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Assinaturas</p>
+                        <p class="text-xl font-bold text-slate-800 tracking-tight tabular-nums">R$ {{ total_subscription|floatformat:2 }}</p>
                     </div>
                     <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-rotate text-emerald-500 text-sm"></i>
@@ -80,73 +115,283 @@
             </div>
         </div>
 
-        <!-- Active subscriptions -->
-        {% if subscriptions %}
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-5">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Assinaturas Ativas</h3>
-                <a href="{% url 'subscriptions_list' %}" class="text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors">
-                    Ver todas <i class="fas fa-arrow-right text-[9px] ml-0.5"></i>
-                </a>
-            </div>
-            <div class="space-y-0.5">
-                {% for sub in subscriptions %}
-                <div class="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></div>
-                        <span class="text-sm font-medium text-slate-700">{{ sub.name }}</span>
+        <!-- ③ Charts side by side -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 fade-up delay-2">
+
+            <!-- Donut: por categoria -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-50">
+                    <div>
+                        <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Por Categoria</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ selected_month_label }}</p>
                     </div>
-                    <span class="text-sm font-semibold text-emerald-600">R$ {{ sub.amount|floatformat:2 }}</span>
+                    <div class="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-slate-400 text-xs"></i>
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Recent expenses -->
-        <div>
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-slate-700">Últimas Despesas</h3>
-                <a href="{% url 'expenses_list' %}" class="text-emerald-600 text-xs font-semibold hover:text-emerald-700 transition-colors">
-                    Ver todas <i class="fas fa-arrow-right text-[9px] ml-0.5"></i>
-                </a>
-            </div>
-
-            {% if expenses %}
-            <div class="space-y-2">
-                {% for expense in expenses %}
-                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-center gap-3 group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
-                        <i class="fas fa-receipt text-amber-500 text-sm"></i>
+                {% if chart_legend %}
+                <div class="px-2 pt-3 pb-3">
+                    <div style="position:relative;height:280px;">
+                        <canvas id="donutChart"></canvas>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-800 truncate">{{ expense.title }}</p>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-xs text-slate-400">{{ expense.date|date:"d/m/Y" }}</span>
-                            <span class="text-slate-200 text-xs">•</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-medium">{{ expense.category.name }}</span>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+                        <i class="fas fa-chart-pie text-slate-300 text-lg"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Nenhum gasto em {{ selected_month_label }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bar: tendência mensal -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-50">
+                    <div>
+                        <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tendência Mensal</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Últimos 6 meses</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+                <div class="px-4 pt-3 pb-4">
+                    <div style="position:relative;height:280px;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{ chart_legend|json_script:"chart-data" }}
+        {{ trend_data|json_script:"trend-data" }}
+        <script>
+        (function () {
+            // ── Donut ──────────────────────────────────────────────────
+            const raw   = JSON.parse(document.getElementById('chart-data').textContent);
+            const total = raw.reduce((s, d) => s + d.valor, 0);
+
+            if (raw.length && document.getElementById('donutChart')) {
+                const radialLabels = {
+                    id: 'radialLabels',
+                    afterDraw(chart) {
+                        const { ctx: c, data, chartArea } = chart;
+                        const meta = chart.getDatasetMeta(0);
+                        const cx = (chartArea.left + chartArea.right) / 2;
+                        const cy = (chartArea.top + chartArea.bottom) / 2;
+
+                        c.save();
+                        c.textAlign = 'center';
+                        c.textBaseline = 'middle';
+                        c.font = '600 9px Inter, system-ui, sans-serif';
+                        c.fillStyle = '#94a3b8';
+                        c.fillText('TOTAL', cx, cy - 13);
+                        c.font = 'bold 17px Inter, system-ui, sans-serif';
+                        c.fillStyle = '#1e293b';
+                        c.fillText('R$ ' + total.toFixed(2).replace('.', ','), cx, cy + 8);
+                        c.restore();
+
+                        meta.data.forEach((arc, i) => {
+                            if ((arc.endAngle - arc.startAngle) < 0.15) return;
+                            const mid   = (arc.startAngle + arc.endAngle) / 2;
+                            const r     = arc.outerRadius;
+                            const color = data.datasets[0].backgroundColor[i];
+                            const name  = data.labels[i];
+                            const val   = data.datasets[0].data[i];
+                            const right = Math.cos(mid) >= 0;
+
+                            const x1 = cx + Math.cos(mid) * r;
+                            const y1 = cy + Math.sin(mid) * r;
+                            const x2 = cx + Math.cos(mid) * (r + 14);
+                            const y2 = cy + Math.sin(mid) * (r + 14);
+                            const x3 = x2 + (right ? 12 : -12);
+
+                            c.save();
+                            c.beginPath();
+                            c.moveTo(x1, y1);
+                            c.lineTo(x2, y2);
+                            c.lineTo(x3, y2);
+                            c.strokeStyle = color;
+                            c.lineWidth = 1.2;
+                            c.lineCap = 'round';
+                            c.lineJoin = 'round';
+                            c.globalAlpha = 0.75;
+                            c.stroke();
+                            c.beginPath();
+                            c.arc(x3, y2, 2, 0, Math.PI * 2);
+                            c.fillStyle = color;
+                            c.globalAlpha = 1;
+                            c.fill();
+
+                            const tx    = x3 + (right ? 5 : -5);
+                            const trunc = name.length > 11 ? name.slice(0, 11) + '…' : name;
+                            c.textAlign = right ? 'left' : 'right';
+                            c.textBaseline = 'bottom';
+                            c.font = '600 10px Inter, system-ui, sans-serif';
+                            c.fillStyle = '#1e293b';
+                            c.fillText(trunc, tx, y2);
+                            c.textBaseline = 'top';
+                            c.font = '500 9px Inter, system-ui, sans-serif';
+                            c.fillStyle = '#64748b';
+                            c.fillText('R$ ' + val.toFixed(2).replace('.', ','), tx, y2 + 2);
+                            c.restore();
+                        });
+                    }
+                };
+
+                new Chart(document.getElementById('donutChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: raw.map(d => d.categoria),
+                        datasets: [{
+                            data: raw.map(d => d.valor),
+                            backgroundColor: raw.map(d => d.cor),
+                            borderWidth: 3,
+                            borderColor: '#f8fafc',
+                            hoverBorderColor: '#f8fafc',
+                            hoverOffset: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        layout: { padding: { top: 46, bottom: 46, left: 70, right: 70 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e293b', titleColor: '#94a3b8',
+                                bodyColor: '#f1f5f9', padding: 10, cornerRadius: 10,
+                                callbacks: { label: c => ' R$ ' + c.parsed.toFixed(2).replace('.', ',') }
+                            }
+                        },
+                        animation: { duration: 900, easing: 'easeInOutQuart' },
+                    },
+                    plugins: [radialLabels]
+                });
+            }
+
+            // ── Bar: tendência ────────────────────────────────────────
+            const trendRaw = JSON.parse(document.getElementById('trend-data').textContent);
+            const selM = {{ selected_month }};
+            const selY = {{ selected_year }};
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'bar',
+                data: {
+                    labels: trendRaw.map(d => d.mes),
+                    datasets: [{
+                        data: trendRaw.map(d => d.total),
+                        backgroundColor: trendRaw.map(d =>
+                            d.month === selM && d.year === selY ? '#10b981' : 'rgba(148,163,184,0.25)'
+                        ),
+                        hoverBackgroundColor: trendRaw.map(d =>
+                            d.month === selM && d.year === selY ? '#059669' : 'rgba(148,163,184,0.45)'
+                        ),
+                        borderRadius: { topLeft: 5, topRight: 5 },
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b', titleColor: '#94a3b8',
+                            bodyColor: '#f1f5f9', padding: 10, cornerRadius: 10,
+                            callbacks: { label: c => ' R$ ' + c.parsed.y.toFixed(2).replace('.', ',') }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { font: { size: 10, family: 'Inter, system-ui' }, color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(241,245,249,0.9)', lineWidth: 1 },
+                            border: { display: false },
+                            ticks: {
+                                font: { size: 10, family: 'Inter, system-ui' }, color: '#94a3b8',
+                                callback: v => v === 0 ? '' : 'R$' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 0})
+                            }
+                        }
+                    },
+                    animation: { duration: 750, easing: 'easeInOutQuart' }
+                }
+            });
+        })();
+        </script>
+
+        <!-- ③ Side-by-side lists -->
+        <div class="grid grid-cols-2 gap-3 fade-up delay-3">
+
+            <!-- Últimas Despesas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+                <div class="flex items-center justify-between px-3.5 pt-3.5 pb-2.5 border-b border-slate-50">
+                    <h3 class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Despesas</h3>
+                    <a href="{% url 'expenses_list' %}" class="text-[10px] font-semibold text-rose-400 hover:text-rose-500 transition-colors">
+                        Ver todas <i class="fas fa-arrow-right text-[8px]"></i>
+                    </a>
+                </div>
+                <div class="flex-1 divide-y divide-slate-50">
+                    {% for expense in expenses %}
+                    <div class="px-3.5 py-2.5">
+                        <div class="flex items-start justify-between gap-1">
+                            <p class="text-[11px] font-semibold text-slate-700 truncate leading-tight">{{ expense.title }}</p>
+                            <span class="text-[11px] font-bold text-rose-500 tabular-nums flex-shrink-0 leading-tight">R$ {{ expense.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="text-[9px] text-slate-400">{{ expense.date|date:"d/m" }}</span>
+                            <span class="text-slate-200 text-[8px]">•</span>
+                            <span class="text-[9px] text-slate-400 truncate">{{ expense.category.name }}</span>
                         </div>
                     </div>
-                    <span class="text-sm font-bold text-rose-500 flex-shrink-0 tabular-nums">- R$ {{ expense.amount|floatformat:2 }}</span>
+                    {% empty %}
+                    <div class="flex flex-col items-center justify-center py-6 text-center">
+                        <i class="fas fa-receipt text-slate-200 text-xl mb-2"></i>
+                        <p class="text-[10px] text-slate-400">Nenhuma despesa</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
-            {% else %}
-            <div class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
-                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-receipt text-slate-300 text-xl"></i>
+
+            <!-- Assinaturas Ativas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+                <div class="flex items-center justify-between px-3.5 pt-3.5 pb-2.5 border-b border-slate-50">
+                    <h3 class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Assinaturas</h3>
+                    <a href="{% url 'subscriptions_list' %}" class="text-[10px] font-semibold text-emerald-500 hover:text-emerald-600 transition-colors">
+                        Ver todas <i class="fas fa-arrow-right text-[8px]"></i>
+                    </a>
                 </div>
-                <p class="text-slate-500 font-medium text-sm">Nenhuma despesa ainda</p>
-                <p class="text-slate-400 text-xs mt-1">Use o botão + para adicionar!</p>
+                <div class="flex-1 divide-y divide-slate-50">
+                    {% for sub in subscriptions %}
+                    <div class="px-3.5 py-2.5 flex items-center justify-between gap-1">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></div>
+                            <span class="text-[11px] font-semibold text-slate-700 truncate">{{ sub.name }}</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-emerald-600 tabular-nums flex-shrink-0">R$ {{ sub.amount|floatformat:2 }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="flex flex-col items-center justify-center py-6 text-center">
+                        <i class="fas fa-rotate text-slate-200 text-xl mb-2"></i>
+                        <p class="text-[10px] text-slate-400">Nenhuma ativa</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            {% endif %}
+
         </div>
 
     </div>
 
     <!-- FAB -->
     <a href="{% url 'add_item' %}"
-       class="fixed bottom-7 right-6 w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/40 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-emerald-500/50 active:scale-95 transition-all duration-200 z-50">
+       class="fixed bottom-7 right-6 w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-500/40 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-emerald-500/50 active:scale-95 transition-all duration-200 z-50 fade-up delay-4">
         <i class="fas fa-plus text-xl"></i>
     </a>
 
