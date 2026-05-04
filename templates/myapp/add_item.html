@@ -193,6 +193,16 @@
         // Pre-select on page load (e.g. form re-render after error)
         const checked = document.querySelector('input[name="item_type"]:checked');
         if (checked) showFields(checked.value);
+
+        // Disable fields in hidden sections so they're not submitted
+        document.querySelector('form').addEventListener('submit', function () {
+            if (expenseFields.style.display === 'none') {
+                expenseFields.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+            }
+            if (subscriptionFields.style.display === 'none') {
+                subscriptionFields.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+            }
+        });
     </script>
 </body>
 </html>

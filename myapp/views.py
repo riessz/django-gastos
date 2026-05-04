@@ -1,13 +1,18 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.utils import timezone
 from datetime import datetime
-from .forms import AddItemForm, ExpenseForm, SubscriptionForm
-from .models import Expense, Subscription
+from .forms import AddItemForm, CategoryForm, ExpenseForm, SubscriptionForm
+from .models import Category, Expense, Subscription
 
 def home(request):
+    hoje = timezone.now()
     expenses = Expense.objects.order_by('-date')[:10]
     subscriptions = Subscription.objects.filter(active=True)
 
-    total_expense = sum(e.amount for e in Expense.objects.all())
+    total_expense = sum(
+        e.amount for e in Expense.objects.filter(date__year=hoje.year, date__month=hoje.month)
+    )
     total_subscription = sum(s.amount for s in subscriptions)
 
     context = {
@@ -80,4 +85,43 @@ def subscriptions_list(request):
         'form': form,
         'show_modal': request.method == 'POST',
     })
+
+def categories_list(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('categories_list')
+    else:
+        form = CategoryForm()
+
+    categories = Category.objects.all()
+    return render(request, 'myapp/categories.html', {
+        'categories': categories,
+        'form': form,
+        'show_modal': request.method == 'POST' and not CategoryForm(request.POST).is_valid(),
+    })
+
+def category_edit(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            category.name = name
+            category.save()
+    return redirect('categories_list')
+
+def category_delete(request, pk):
+    if request.method == 'POST':
+        get_object_or_404(Category, pk=pk).delete()
+    return redirect('categories_list')
+
+def category_create_ajax(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            category = Category.objects.create(name=name)
+            return JsonResponse({'id': category.pk, 'name': category.name})
+        return JsonResponse({'error': 'Nome inválido'}, status=400)
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
 
