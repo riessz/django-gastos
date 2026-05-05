@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from .forms import AddItemForm, CategoryForm, ExpenseForm, SubscriptionForm
 from .models import Category, Expense, Subscription, SubscriptionPayment
@@ -82,6 +83,7 @@ def _build_chart_legend(month_expenses):
         for i, (cat, val) in enumerate(totais.items())
     ]
 
+@login_required
 def home(request):
     hoje = timezone.now()
     month = int(request.GET.get('month', hoje.month))
@@ -110,6 +112,7 @@ def home(request):
     }
     return render(request, 'myapp/home.html', context)
 
+@login_required
 def add_item(request):
     if request.method == 'POST':
         form = AddItemForm(request.POST)
@@ -136,6 +139,7 @@ def add_item(request):
     
     return render(request, 'myapp/add_item.html', {'form': form})
 
+@login_required
 def expenses_list(request):
     hoje = timezone.now()
     month = int(request.GET.get('month', hoje.month))
@@ -163,6 +167,7 @@ def expenses_list(request):
     })
 
 
+@login_required
 def expense_edit(request, exp_id):
     if request.method == 'POST':
         exp = get_object_or_404(Expense, pk=exp_id)
@@ -183,12 +188,14 @@ def expense_edit(request, exp_id):
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 
+@login_required
 def expense_delete(request, exp_id):
     if request.method == 'POST':
         get_object_or_404(Expense, pk=exp_id).delete()
         return JsonResponse({'ok': True})
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
+@login_required
 def subscriptions_list(request):
     if request.method == 'POST':
         form = SubscriptionForm(request.POST)
@@ -216,6 +223,7 @@ def subscriptions_list(request):
     })
 
 
+@login_required
 def subscription_edit(request, sub_id):
     if request.method == 'POST':
         sub = get_object_or_404(Subscription, pk=sub_id)
@@ -234,6 +242,7 @@ def subscription_edit(request, sub_id):
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 
+@login_required
 def subscription_delete(request, sub_id):
     if request.method == 'POST':
         get_object_or_404(Subscription, pk=sub_id).delete()
@@ -241,6 +250,7 @@ def subscription_delete(request, sub_id):
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 
+@login_required
 def toggle_subscription_payment(request, sub_id):
     if request.method == 'POST':
         hoje = timezone.now()
@@ -254,6 +264,7 @@ def toggle_subscription_payment(request, sub_id):
         return JsonResponse({'paid': payment.paid})
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
+@login_required
 def categories_list(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -270,6 +281,7 @@ def categories_list(request):
         'show_modal': request.method == 'POST' and not CategoryForm(request.POST).is_valid(),
     })
 
+@login_required
 def category_edit(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -279,11 +291,13 @@ def category_edit(request, pk):
             category.save()
     return redirect('categories_list')
 
+@login_required
 def category_delete(request, pk):
     if request.method == 'POST':
         get_object_or_404(Category, pk=pk).delete()
     return redirect('categories_list')
 
+@login_required
 def category_create_ajax(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
