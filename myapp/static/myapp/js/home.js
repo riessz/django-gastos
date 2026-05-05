@@ -115,10 +115,10 @@
             datasets: [{
                 data: trendRaw.map(d => d.total),
                 backgroundColor: trendRaw.map(d =>
-                    d.month === selM && d.year === selY ? '#10b981' : 'rgba(148,163,184,0.25)'
+                    d.month === selM && d.year === selY ? '#16a34a' : '#86efac'
                 ),
                 hoverBackgroundColor: trendRaw.map(d =>
-                    d.month === selM && d.year === selY ? '#059669' : 'rgba(148,163,184,0.45)'
+                    d.month === selM && d.year === selY ? '#15803d' : '#4ade80'
                 ),
                 borderRadius: { topLeft: 5, topRight: 5 },
                 borderSkipped: false,
