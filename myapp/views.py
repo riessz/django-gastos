@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.utils import timezone
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
 from .forms import AddItemForm, CategoryForm, ExpenseForm, SubscriptionForm
 from .models import Category, Expense, Subscription, SubscriptionPayment
 
@@ -101,7 +101,7 @@ def home(request):
     trend_data       = _build_trend_data(6)
 
     context = {
-        'current_date': datetime.now(),
+        'current_date': timezone.now(),
         'expenses': expenses,
         'subscriptions': subscriptions,
         'total_expense': total_expense,
@@ -149,7 +149,6 @@ def expenses_list(request):
         form = ExpenseForm(request.POST)
         if form.is_valid():
             form.save()
-            from django.urls import reverse
             return redirect(f"{reverse('expenses_list')}?month={month}&year={year}")
     else:
         form = ExpenseForm()
@@ -171,18 +170,9 @@ def expenses_list(request):
 def expense_edit(request, exp_id):
     if request.method == 'POST':
         exp = get_object_or_404(Expense, pk=exp_id)
-        title = request.POST.get('title', '').strip()
-        amount = request.POST.get('amount', '').strip()
-        category_id = request.POST.get('category', '').strip()
-        date = request.POST.get('date', '').strip()
-        description = request.POST.get('description', '').strip()
-        if title and amount and category_id and date:
-            exp.title = title
-            exp.amount = amount
-            exp.category_id = int(category_id)
-            exp.date = date
-            exp.description = description
-            exp.save()
+        form = ExpenseForm(request.POST, instance=exp)
+        if form.is_valid():
+            form.save()
             return JsonResponse({'ok': True})
         return JsonResponse({'ok': False, 'error': 'Dados inválidos'}, status=400)
     return JsonResponse({'error': 'Método não permitido'}, status=405)
@@ -227,16 +217,9 @@ def subscriptions_list(request):
 def subscription_edit(request, sub_id):
     if request.method == 'POST':
         sub = get_object_or_404(Subscription, pk=sub_id)
-        name = request.POST.get('name', '').strip()
-        amount = request.POST.get('amount', '').strip()
-        billing_day = request.POST.get('billing_day', '').strip()
-        active = request.POST.get('active') == 'on'
-        if name and amount and billing_day:
-            sub.name = name
-            sub.amount = amount
-            sub.billing_day = int(billing_day)
-            sub.active = active
-            sub.save()
+        form = SubscriptionForm(request.POST, instance=sub)
+        if form.is_valid():
+            form.save()
             return JsonResponse({'ok': True})
         return JsonResponse({'ok': False, 'error': 'Dados inválidos'}, status=400)
     return JsonResponse({'error': 'Método não permitido'}, status=405)
@@ -278,7 +261,7 @@ def categories_list(request):
     return render(request, 'myapp/categories.html', {
         'categories': categories,
         'form': form,
-        'show_modal': request.method == 'POST' and not CategoryForm(request.POST).is_valid(),
+        'show_modal': request.method == 'POST',
     })
 
 @login_required
