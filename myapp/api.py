@@ -3,10 +3,10 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from myapp.models import Expense, Category, Subscription
+from myapp.models import Expense, Category, Subscription, SubscriptionPayment
 from myapp.serializers import ExpenseSerializer, CategorySerializer, SubscriptionSerializer
 
 MESES_PT   = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -132,9 +132,16 @@ def api_dashboard(request):
 # ── ViewSets ──────────────────────────────────────────────────────────────────
 
 class ExpenseViewSet(viewsets.ModelViewSet):
-    queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Expense.objects.select_related('category')
+        month = self.request.query_params.get('month')
+        year  = self.request.query_params.get('year')
+        if month and year:
+            qs = qs.filter(date__month=month, date__year=year)
+        return qs.order_by('-date')
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -147,5 +154,17 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     permission_classes = [IsAuthenticated]
+
+    @action(detail=True, methods=['post'], url_path='toggle-payment')
+    def toggle_payment(self, request, pk=None):
+        sub = self.get_object()
+        hoje = timezone.now()
+        payment, created = SubscriptionPayment.objects.get_or_create(
+            subscription=sub, month=hoje.month, year=hoje.year
+        )
+        if not created:
+            payment.paid = not payment.paid
+            payment.save()
+        return Response({'paid': payment.paid})
 
 
