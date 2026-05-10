@@ -11,9 +11,7 @@ export default function Login() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    getCsrfCookie()
-  }, [])
+  useEffect(() => { getCsrfCookie() }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -31,59 +29,73 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-3">💰</div>
-          <h1 className="text-2xl font-bold text-white">Gastos</h1>
-          <p className="text-gray-400 text-sm mt-1">Controle seus gastos</p>
+    <div className="min-h-screen bg-[#070710] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-violet-700/[0.07] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-violet-900/[0.05] rounded-full blur-[80px] pointer-events-none" />
+
+      <div className="w-full max-w-sm relative z-10">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-[60px] h-[60px] rounded-[18px] bg-gradient-to-br from-violet-500 to-violet-700 mb-5 shadow-[0_0_50px_rgba(124,58,237,0.4)]">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          </div>
+          <h1 className="text-[34px] font-syne font-bold tracking-tight text-white leading-none mb-2">
+            gastos
+          </h1>
+          <p className="text-sm text-[#8080a0]">seu controle financeiro pessoal</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-gray-900 rounded-2xl p-6 space-y-4"
-        >
+        {/* Form card */}
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-3xl p-6">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-red-400 text-sm">
+            <div className="bg-rose-500/[0.08] border border-rose-500/[0.2] rounded-xl px-4 py-3 text-rose-400 text-sm mb-5">
               {error}
             </div>
           )}
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">
-              Usuário
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-gray-600"
-              placeholder="seu usuário"
-              required
-              autoFocus
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-syne font-semibold text-[#8080a0] uppercase tracking-[0.12em] mb-2">
+                Usuário
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-white/[0.05] border border-white/[0.09] text-[#ededf5] rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-500/50 focus:bg-white/[0.07] transition-all placeholder-[#3a3a5a]"
+                placeholder="seu usuário"
+                required
+                autoFocus
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-gray-600"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-[10px] font-syne font-semibold text-[#8080a0] uppercase tracking-[0.12em] mb-2">
+                Senha
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white/[0.05] border border-white/[0.09] text-[#ededf5] rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-500/50 focus:bg-white/[0.07] transition-all placeholder-[#3a3a5a]"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold py-3 rounded-xl text-sm hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-60 transition-all mt-2"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white font-syne font-semibold py-3.5 rounded-xl text-sm tracking-wide transition-all duration-200 shadow-[0_4px_28px_rgba(124,58,237,0.35)] hover:shadow-[0_4px_36px_rgba(124,58,237,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -18,25 +18,28 @@ export default function DonutChart({ data, total }) {
       type: 'doughnut',
       data: {
         labels: data.map((d) => d.categoria),
-        datasets: [
-          {
-            data: data.map((d) => d.valor),
-            backgroundColor: data.map((d) => d.cor),
-            borderWidth: 0,
-            hoverOffset: 4,
-          },
-        ],
+        datasets: [{
+          data: data.map((d) => d.valor),
+          backgroundColor: data.map((d) => d.cor),
+          borderWidth: 0,
+          hoverOffset: 4,
+        }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '72%',
+        cutout: '74%',
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: 'rgba(13,13,34,0.95)',
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            titleColor: '#8080a0',
+            bodyColor: '#ededf5',
+            bodyFont: { family: 'DM Mono', size: 12 },
             callbacks: {
-              label: (ctx) =>
-                ` ${formatBRL(ctx.parsed)}`,
+              label: (ctx) => ` ${formatBRL(ctx.parsed)}`,
             },
           },
         },
@@ -47,34 +50,31 @@ export default function DonutChart({ data, total }) {
   }, [data])
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-4">
-      <p className="text-sm font-medium text-gray-400 mb-3">Por categoria</p>
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+      <p className="text-[10px] font-syne font-semibold text-[#8080a0] uppercase tracking-[0.1em] mb-3">Por categoria</p>
       {data && data.length > 0 ? (
         <>
-          <div className="relative h-36 mb-4">
+          <div className="relative h-32 mb-3">
             <canvas ref={canvasRef} />
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-xs text-gray-500">total</span>
-              <span className="text-sm font-bold text-white">{formatBRL(total)}</span>
+              <span className="text-[10px] text-[#50507a] font-syne">total</span>
+              <span className="text-sm font-mono-fin font-medium text-[#ededf5]">{formatBRL(total)}</span>
             </div>
           </div>
           <ul className="space-y-1.5">
             {data.map((item) => (
-              <li key={item.categoria} className="flex items-center justify-between text-xs">
+              <li key={item.categoria} className="flex items-center justify-between text-[11px]">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.cor }}
-                  />
-                  <span className="text-gray-300 truncate">{item.categoria}</span>
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.cor }} />
+                  <span className="text-[#a0a0c0] truncate">{item.categoria}</span>
                 </div>
-                <span className="text-gray-500 ml-2">{item.pct}%</span>
+                <span className="text-[#606080] ml-2 font-mono-fin">{item.pct}%</span>
               </li>
             ))}
           </ul>
         </>
       ) : (
-        <div className="h-36 flex items-center justify-center text-gray-600 text-sm">
+        <div className="h-32 flex items-center justify-center text-[#44445a] text-sm">
           Sem gastos neste mês
         </div>
       )}

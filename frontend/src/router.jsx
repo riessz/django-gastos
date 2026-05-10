@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getMe } from './api/auth'
+import Layout from './components/layout/Layout'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Expenses from './pages/Expenses'
@@ -9,8 +10,8 @@ import Categories from './pages/Categories'
 
 function Spinner() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="w-8 h-8 rounded-full border-2 border-gray-700 border-t-emerald-500 animate-spin" />
+    <div className="min-h-screen bg-[#070710] flex items-center justify-center">
+      <div className="w-7 h-7 rounded-full border-2 border-white/[0.08] border-t-violet-500 animate-spin" />
     </div>
   )
 }
@@ -24,7 +25,7 @@ function PrivateRoute({ children }) {
 
   if (isLoading) return <Spinner />
   if (isError || !user) return <Navigate to="/login" replace />
-  return children
+  return <Layout>{children}</Layout>
 }
 
 export default function Router() {

@@ -13,37 +13,44 @@ export default function TrendChart({ data }) {
       type: 'bar',
       data: {
         labels: data.map((d) => d.mes),
-        datasets: [
-          {
-            data: data.map((d) => d.total),
-            backgroundColor: data.map((_, i) =>
-              i === data.length - 1 ? '#10b981' : '#374151'
-            ),
-            borderRadius: 5,
-            borderSkipped: false,
-          },
-        ],
+        datasets: [{
+          data: data.map((d) => d.total),
+          backgroundColor: data.map((_, i) =>
+            i === data.length - 1 ? 'rgba(139,92,246,0.85)' : 'rgba(139,92,246,0.2)'
+          ),
+          borderRadius: 6,
+          borderSkipped: false,
+        }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: {
-          callbacks: {
-            label: (ctx) =>
-              ` R$ ${Number(ctx.parsed.y).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(13,13,34,0.95)',
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            titleColor: '#8080a0',
+            bodyColor: '#ededf5',
+            bodyFont: { family: 'DM Mono', size: 12 },
+            callbacks: {
+              label: (ctx) =>
+                ` R$ ${Number(ctx.parsed.y).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            },
           },
-        }},
+        },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#6b7280', font: { size: 10 } },
+            ticks: { color: '#50507a', font: { size: 9, family: 'Syne' } },
             border: { display: false },
           },
           y: {
-            grid: { color: '#1f2937' },
+            grid: { color: 'rgba(255,255,255,0.04)' },
             ticks: {
-              color: '#6b7280',
-              font: { size: 10 },
+              color: '#50507a',
+              font: { size: 9 },
               callback: (v) => `R$${Number(v).toLocaleString('pt-BR')}`,
             },
             border: { display: false },
@@ -56,14 +63,14 @@ export default function TrendChart({ data }) {
   }, [data])
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-4">
-      <p className="text-sm font-medium text-gray-400 mb-3">Tendência 6 meses</p>
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+      <p className="text-[10px] font-syne font-semibold text-[#8080a0] uppercase tracking-[0.1em] mb-3">Tendência 6 meses</p>
       {data && data.length > 0 ? (
-        <div className="relative h-36 mb-4">
+        <div className="relative h-32">
           <canvas ref={canvasRef} />
         </div>
       ) : (
-        <div className="h-36 flex items-center justify-center text-gray-600 text-sm">
+        <div className="h-32 flex items-center justify-center text-[#44445a] text-sm">
           Sem dados
         </div>
       )}
