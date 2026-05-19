@@ -1,40 +1,56 @@
 # Gestão de Gastos
 
-Aplicação web para controle de gastos domésticos, desenvolvida com Django.
+Aplicação web para controle de gastos domésticos. Arquitetura desacoplada: API REST em Django no backend e SPA em React no frontend.
 
 ## Funcionalidades
 
-- **Dashboard** — resumo mensal com gráfico de categorias e tendência dos últimos 6 meses
+- **Dashboard** — resumo mensal com gráfico de categorias (donut) e tendência dos últimos 6 meses (barras)
 - **Gastos** — cadastro, edição e exclusão de despesas por categoria e data
 - **Assinaturas** — gerenciamento de serviços recorrentes com controle de pagamento mensal
 - **Categorias** — criação e edição de categorias personalizadas
 
 ## Tecnologias
 
-- Python / Django 6
+**Backend**
+- Python / Django 6 + Django REST Framework
 - SQLite
-- Pandas + NumPy (gráficos e análises)
-- HTML/CSS (templates Django)
+- Autenticação por sessão com CSRF
+
+**Frontend**
+- React 19 + Vite 8
+- Chart.js 4 (gráficos de donut e barras)
+- TanStack Query 5 (cache e sincronização de dados)
+- React Router 7
+- Tailwind CSS 3
 
 ## Instalação
 
+### Backend
+
 ```bash
-# Clone o repositório
 git clone <url-do-repo>
 cd Django-gastos
 
-# Crie e ative o ambiente virtual
 python -m venv .venv
-.venv\Scripts\activate  # Windows
+.venv\Scripts\activate       # Windows
+# source .venv/bin/activate  # Linux/Mac
 
-# Instale as dependências
 pip install -r requirements.txt
 
-# Execute as migrações
 python manage.py migrate
+python manage.py createsuperuser   # cria o primeiro usuário
 
-# Inicie o servidor
 python manage.py runserver
 ```
 
-Acesse em `http://localhost:8000`.
+API disponível em `http://localhost:8000`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse em `http://localhost:5173`.
